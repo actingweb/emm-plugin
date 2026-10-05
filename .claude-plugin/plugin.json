@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "emm",
+  "displayName": "Emm AI",
+  "version": "2.10.0",
+  "description": "Emm AI plugin \u2014 connects Claude to your Emm AI account for persistent memory, standing instructions, and an output wiki across AI sessions.",
+  "license": "MIT-0",
+  "author": {
+    "name": "ActingWeb",
+    "url": "https://actingweb.io"
+  },
+  "homepage": "https://ai.actingweb.io",
+  "keywords": [
+    "emm",
+    "memory",
+    "mcp",
+    "personal-ai",
+    "instructions",
+    "wiki",
+    "mission-control"
+  ]
+}

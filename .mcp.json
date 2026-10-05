@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "emm": {
+      "type": "http",
+      "url": "https://ai.actingweb.io/mcp"
+    }
+  }
+}
