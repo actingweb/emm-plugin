@@ -18,5 +18,7 @@
     "instructions",
     "wiki",
     "mission-control"
-  ]
+  ],
+  "icon": "./.claude-plugin/icon.png",
+  "privacyPolicyUrl": "https://ai.actingweb.io/privacy"
 }
