@@ -20,5 +20,8 @@
     "mission-control"
   ],
   "icon": "./.claude-plugin/icon.png",
-  "privacyPolicyUrl": "https://ai.actingweb.io/privacy"
+  "privacyPolicyUrl": "https://ai.actingweb.io/privacy",
+  "supportUrl": "https://ai.actingweb.io/support",
+  "repository": "https://github.com/actingweb/emm-plugin",
+  "documentationUrl": "https://ai.actingweb.io/connect-claude"
 }
