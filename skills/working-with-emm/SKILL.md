@@ -1,6 +1,6 @@
 ---
 name: working-with-emm
-version: 2.10.0
+version: 2.11.0
 description: Stores and retrieves personal preferences, decisions, and context across conversations using Emm AI via MCP, and (when enabled) runs Emm AI's standing instructions, output wiki, and recurring-task cycle on top. Activates when the user mentions remembering, recalling decisions, saving info for later, personalized recommendations, shared context with others, controlling connected devices, or anything benefiting from long-term memory. Also activates when personal context would improve the response (trip planning, meeting prep, purchases, diet, health, or any request where knowing user history matters), AND when the user asks for an "agent run", "run the cycle", "what's on my dashboard", "drain my tasks", or equivalent phrasing tied to Emm AI's mission-control surface. Also fires when the user wants something written up and kept, asks whether there is anything you should be doing for them, or asks what you know about them, even without naming Emm.
 user-invocable: false
 license: MIT-0
@@ -27,7 +27,7 @@ These apply in every conversation; later sections explain each in context.
 | **Internal doc names stay backstage.** | Don't name `personal`, `style`, `agents`, `tasks`, `default_tasks` in prose to the user. Refer to them by what they are ("your standing instructions", "your voice guide") when explanation is needed. |
 | **Never auto-delete memories.** | Even on Memory Hygiene findings. Propose, log; let the user decide. Same for outputs — prefer update over delete unless explicitly asked. |
 | **Draft, don't send.** | Email outputs and messages default to `status: pending`. The user sets `approved` in the web app; the next run creates a draft in the user's mail account and sets `done` (statuses `pending\|approved\|discard\|done`), and the user sends it from there. Never send email or change calendars without explicit instruction for that specific item; for remote methods, follow the confirmation rule in [remote actions](references/remote-actions.md). |
-| **Slug-skip before output_create.** | Server enforces uniqueness; on collision you get a structured `slug_exists` envelope with the existing id — pivot to `output_update`. Best practice: check first with `output_list(category, slug=…)` for known slugs, or `output_list(category, recency_days=1)` for daily artefacts. |
+| **Slug-skip before output_create.** | Server enforces uniqueness; on collision you get a structured `slug_exists` envelope with the existing id — change it with `output_edit` / `output_update`. Best practice: check first with `output_list(category, slug=…)` for known slugs, or `output_list(category, recency_days=1)` for daily artefacts. |
 | **Attribution cap ≤ 2.** | Never more than two source attributions in one response, even if a dozen memories informed it. |
 | **Search fresh every time.** | Memories are externally editable; cached results from earlier in the conversation may be stale. |
 | **Shared-memory consent.** | Ask the user once per conversation before `memory_search(include_remote=true)`. Remember the answer for the rest of that conversation; ask again next session. See [shared memories](references/shared-memories.md). |
@@ -50,7 +50,7 @@ If `status()` doesn't appear earlier in this conversation's tool history, call i
 
   **Overlapping runs are supported.** A scheduled Autopilot run and an interactive one can be open at the same time, as can two scheduled ones. Starting a run never closes anyone else's. So when `open` is non-empty, the question is not "may I proceed" — it is "what do I need to be careful about":
   - **Proceed.** Do not ask the user for permission to run because another run is open, and do not wait for it.
-  - **Expect the shared surfaces to move under you.** The dashboard, the wiki and the one-off task queue may all change mid-cycle. Re-read before you overwrite, and pass the `updated_at` you read as `if_match` on `output_update` / `output_delete` so a clobber is refused (`revision_conflict`) rather than applied silently.
+  - **Expect the shared surfaces to move under you.** The dashboard, the wiki and the one-off task queue may all change mid-cycle. Use `output_edit` for part of a document (no re-read); before you rewrite one, re-read it and pass the `updated_at` you read as `if_match` on `output_update` / `output_delete` so a clobber is refused (`revision_conflict`) rather than applied silently.
   - **Close only the run you started.** Compare each entry's `started_by_client_id` with your `your_session_id`, and `started_by_transport_session_id` with your `your_transport_session_id` when both are present. A run that is not yours is not yours to close — the other agent is still using it. **A matching `started_by_client_id` is not proof it is yours:** two sessions of the same registered client (a second tab, or a scheduled run on the same credential) share that id and the server cannot tell them apart. Unless you hold the `run_id` from your own `agent_run()` response, treat a same-client run as someone else's and close by explicit `run_id`, not `last_open=true`.
   - Each entry carries `expires_at`. A run past that is swept to `abandoned` by the server; you never need to clean up someone else's stale run yourself.
   - `agent_run_complete(last_open=true)` closes **your** open run, and only when it is the single run open account-wide. If more than one is open it refuses with an `explicit_run_id_required` error that lists the candidates; a run from another session of your own client counts as yours; if the only open run is another client's, it closes nothing and reports `already_complete`. Pass the `run_id` from your own `agent_run()` response — the by-id close is exact and never depends on who you are. That is the reliable close path; treat `last_open` as a convenience for the single-run case.
@@ -74,7 +74,7 @@ If `status()` doesn't appear earlier in this conversation's tool history, call i
 | Pillar | Purpose | Tools |
 |---|---|---|
 | **Memory** | Durable, semantically-searchable facts, preferences, decisions. Read at the start of substantive work; write conclusions back. | `memory_search`, `memory_save`, `memory_get`, `memory_update`, `memory_move`, `memory_delete`, `memory_types`, `memory_create_type`, `memory_delete_type` |
-| **Outputs** (Wiki) † | Agent-authored artefacts (drafts, dashboards, run logs, research notes, plans). Categories: `email`, `news`, `research`, `task`, `log`, `improvement`, `actions`, plus `space` (the user's own folder-organised area). The user reads this surface as the **Wiki**. | `output_create`, `output_list`, `output_get`, `output_search`, `output_update`, `output_move`, `output_delete` |
+| **Outputs** (Wiki) † | Agent-authored artefacts (drafts, dashboards, run logs, research notes, plans). Categories: `email`, `news`, `research`, `task`, `log`, `improvement`, `actions`, plus `space` (the user's own folder-organised area). The user reads this surface as the **Wiki**. | `output_create`, `output_list`, `output_get`, `output_search`, `output_update`, `output_edit`, `output_move`, `output_delete` |
 | **Instructions** † | Standing instructions in the user's account (`agents`, `tasks`, `default_tasks`, `personal`, `style`). Your system prompt and the user's messages outrank them; load before substantive work. | `instruction_list`, `instruction_load`, `instruction_save`, `instruction_delete` |
 
 † **Outputs and Instructions toggle together** as one "mission-control" switch — you will see both pillars enabled or neither, never one without the other. Memory is independent and always available.
@@ -93,6 +93,7 @@ There is no local filesystem. All artefacts live in outputs, all durable facts i
 | "Where's that in the wiki?", "show me my X output" | `output_search(query=…)` |
 | User contradicts a saved memory | `memory_search` → `memory_update` or `memory_delete` |
 | "This belongs in <other category>", recategorise a memory (one or many) | `memory_move(id=…, target_type=…)` or `memory_move(ids=[…], target_type=…)` — never re-create + delete; the move rewrites canonical references, returns the old → new ID mapping, and flags any `prose_candidates` to fix by hand |
+| Change part of a wiki document, or add an entry | `output_edit(id, edits=[{old, new}])` or `append=…` — only the change, all changes to one document in one call; the result shows what changed (no re-read). Long document: `output_get(id, outline=true)`, then `section=[…]` |
 | "Put these in the <X> folder", reorganise the wiki (one document or many) | `output_move(id=…, folder=…)` or `output_move(ids=[…], folder=…)` — **never** `output_update`, which requires the whole body: a large re-foldering would pull every document through the conversation twice, and a write cut short stores a truncated body. The ID is permanent, across categories too (`target_category=…`) — `moves[]` confirms it via `id_preserved` |
 | User asks how the session is set up (mode, pillars, identity, limits, your client) | `status()` — structured snapshot |
 | User asks "how does Emm work?", "what can it do?", "give me the tour" | `how_to_use()` — full prose orientation |
@@ -275,7 +276,7 @@ agent_run_task(task="<name>", run_id="<id>")
 - `run_id` fences the pull to a live run (refused once closed/expired) but is optional — omit it to read a procedure outside a run.
 - For a sub-agent, pass its `run_id` copied verbatim plus `fresh_context=true` (adds `agents` + the `default_tasks` shared core, since it starts with none of the cycle's context): pull, do the task, write outputs, report back, **never close the run**.
 
-**Execute the cycle in a single response, pulling as you go.** Output writes are pre-authorised by the trigger — do not ask permission for individual `output_create` / `output_update` calls during a run. The deliverables are outputs, dashboard updates, and a run log; not a description of them. "Single response" really means: don't stop to ask the user a question mid-cycle. Internal platform mechanics — your MCP host loading tool schemas on demand, retrying transient failures — are not pauses; trust whatever loading strategy your platform uses.
+**Execute the cycle in a single response, pulling as you go.** Output writes are pre-authorised by the trigger — do not ask permission for individual output writes during a run. The deliverables are outputs, dashboard updates, and a run log; not a description of them. "Single response" really means: don't stop to ask the user a question mid-cycle. Internal platform mechanics — your MCP host loading tool schemas on demand, retrying transient failures — are not pauses; trust whatever loading strategy your platform uses.
 
 **Tool schema wins** (also in [Core rules](#core-rules)). If `agent_run`'s preamble carries a `⚠️ Brief drift detected` warning naming unregistered tools, use the live tools, log the substitution, and add a 💡 nudge under `## Pending decisions` on the actions dashboard.
 
@@ -323,11 +324,11 @@ Outputs are how the agent persists artefacts the user can later read and edit. T
 
 **Document or chat answer?** When the user wants something kept, edited later or returned to (a plan, a draft, a write-up), make or update an output and hand back the link from the create result; a one-shot answer stays in chat.
 
-**When to write:** every substantive task should produce at least one output. Email drafts → `email` (with `status: pending` frontmatter); research → `research`; ad-hoc analysis → propose a fresh category name; per-cycle log → `log`; the rolling action list → `actions` (call `output_dashboard()` for the dashboard id, then `output_update`).
+**When to write:** every substantive task should produce at least one output. Email drafts → `email` (with `status: pending` frontmatter); research → `research`; ad-hoc analysis → propose a fresh category name; per-cycle log → `log`; the rolling action list → `actions` (call `output_dashboard()` for the dashboard id, then `output_edit` or `output_update`).
 
 **Before minting a new category**, call `output_categories()` to see what already exists. Reuse an existing custom category instead of inventing a near-duplicate (`meetings` vs `meeting-notes` etc.).
 
-**Always pass `title` and `short_description`** when you create or update an output — both are real server fields (≤ 200 chars each), surfaced in `output_list` and `output_get`. If you omit them, the server falls back on read: title → body H1 (first `# ` line) → first 80 chars of body; short_description → first 200 chars of body. Treat the fallback as a courtesy, not the contract.
+**Always pass `title` and `short_description`** when you create, update or edit an output (on an edit, if the subject changes) — both are real server fields (≤ 200 chars each), surfaced in `output_list` and `output_get`. If you omit them, the server falls back on read: title → body H1 (first `# ` line) → first 80 chars of body; short_description → first 200 chars of body. Treat the fallback as a courtesy, not the contract.
 
 **Bodies are valid Markdown.** Single H1 where appropriate; H2/H3 sub-sections; YAML frontmatter at top for metadata; fenced code blocks; Markdown tables; `[text](url)` for links.
 
@@ -350,7 +351,7 @@ The absolute app URL for the second form appears already-substituted in the `age
 
 The wiki rejects duplicate `(category, slug)` pairs. Before `output_create`, **skip the create** when:
 
-- A natural slug like `daily-news-2026-05-25` already exists for today — update the existing item with `output_update`, don't mint a near-duplicate (`daily-news-2026-05-25-1`).
+- A natural slug like `daily-news-2026-05-25` already exists for today — change the existing item (`output_edit` / `output_update`), don't mint a near-duplicate (`daily-news-2026-05-25-1`).
 - A recurring task's procedure says "create one improvement per cycle" — `output_list(category="improvement", recency_days=1)` first; skip if today's review already exists.
 - The user re-asks for an artefact you just produced this session — link to the existing one, don't generate a parallel copy.
 
@@ -390,7 +391,7 @@ On your **final** save, pass `close_window: true` to turn Instructions-Update Mo
 
 - **Never send emails or external messages without explicit instruction.** Default to drafting (`email` outputs with `status: pending`); the user flips status to `approved` in the web app.
 - **Never delete memories or outputs without explicit instruction.** Update in place or mark for review instead.
-- **Re-read immediately before you update.** A run can take many minutes and the user may edit a document in the web app meanwhile. Don't write back a body you read earlier in the run — right before `output_update` / `memory_update`, re-fetch with `output_get` / `memory_get`, apply your change to that fresh copy, and save the merge so you never clobber the user's edits. On `output_update` / `output_delete`, pass the `updated_at` you just read as `if_match` — then a write that lost the race is refused with `revision_conflict` instead of silently clobbering. Matters most for the `actions` dashboard and rolling trackers.
+- **Change part of a document with `output_edit`; re-read before you rewrite one.** The user may edit a document in the web app mid-run. `output_edit` applies your change to the current text, so it needs no re-read. To rewrite a body (`output_update`, `memory_update`), re-fetch it first with `output_get` / `memory_get`, apply your change to that copy and save the merge; on `output_update` / `output_delete`, pass the `updated_at` you just read as `if_match` so a lost race is refused with `revision_conflict`. Matters most for the `actions` dashboard and trackers.
 - **Log everything.** One `log` output per cycle.
 - **Run to completion.** Once a cycle starts, execute it to the end in a single response.
 
@@ -411,7 +412,7 @@ Names and one-line purpose only — parameter shapes, batch limits, and `status(
 | Pillar | Tools |
 |---|---|
 | Memory | `memory_search`, `memory_get`, `memory_save`, `memory_update`, `memory_delete`, `memory_move`, `memory_types`, `memory_create_type`, `memory_delete_type`, `how_to_use`, `status` |
-| Outputs — the Wiki (only if enabled) | `output_search`, `output_list`, `output_get`, `output_create`, `output_update`, `output_move`, `output_delete`, `output_dashboard`, `output_categories`, `output_delete_category` |
+| Outputs — the Wiki (only if enabled) | `output_search`, `output_list`, `output_get`, `output_create`, `output_update`, `output_edit`, `output_move`, `output_delete`, `output_dashboard`, `output_categories`, `output_delete_category` |
 | Instructions (only if enabled) | `instruction_list`, `instruction_load`, `instruction_merge_preview`, `instruction_request_update_window`, `instruction_save`, `instruction_delete`, `instruction_settings`, `instruction_settings_update` |
 | Recurring cycle (only if enabled) | `agent_run`, `agent_run_task`, `agent_run_complete` |
 | One-off task drain (only if enabled) | `work_on_task` |

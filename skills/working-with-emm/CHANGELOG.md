@@ -2,6 +2,22 @@
 
 All notable changes to the **Working with Emm AI** skill (ClawHub slug: `working-with-emm`; previously published under `managing-actingweb-memory`).
 
+## [2.11.0] — 2026-10-06
+
+### Added
+
+- [Available Tools](#available-tools): `output_edit` changes part of a wiki
+  document, or appends to it, without resending the rest: each `old` text must
+  appear exactly once, the result shows what changed, and no re-read is needed.
+- [Available Tools](#available-tools): `output_get` shows a document's `size`,
+  lists its headings with `outline=true`, and reads one part with `section`;
+  `output_list` and `output_search` show each document's `size`.
+- `references/mission-control.md`: remedy rows for `section_not_found`,
+  `anchor_not_found`,
+  `anchor_ambiguous` and `edits_overlap`, and the `edit:`, `match_count:` and
+  `nearest_match:` lines they carry; the `revision_conflict` row covers
+  `output_edit`.
+
 ## [2.10.0] — 2026-09-29
 
 ### Added
