@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "emm",
   "displayName": "Emm AI",
-  "version": "2.11.0",
+  "version": "2.11.1",
   "description": "Emm AI plugin \u2014 connects Claude to your Emm AI account for persistent memory, standing instructions, and an output wiki across AI sessions.",
   "license": "MIT-0",
   "author": {

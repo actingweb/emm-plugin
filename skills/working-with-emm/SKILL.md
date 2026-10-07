@@ -1,6 +1,6 @@
 ---
 name: working-with-emm
-version: 2.11.0
+version: 2.11.1
 description: Stores and retrieves personal preferences, decisions, and context across conversations using Emm AI via MCP, and (when enabled) runs Emm AI's standing instructions, output wiki, and recurring-task cycle on top. Activates when the user mentions remembering, recalling decisions, saving info for later, personalized recommendations, shared context with others, controlling connected devices, or anything benefiting from long-term memory. Also activates when personal context would improve the response (trip planning, meeting prep, purchases, diet, health, or any request where knowing user history matters), AND when the user asks for an "agent run", "run the cycle", "what's on my dashboard", "drain my tasks", or equivalent phrasing tied to Emm AI's mission-control surface. Also fires when the user wants something written up and kept, asks whether there is anything you should be doing for them, or asks what you know about them, even without naming Emm.
 user-invocable: false
 license: MIT-0
@@ -373,7 +373,7 @@ When **outside an agent run**, call `instruction_load(name="agents")` when the u
 
 `instruction_save` and `instruction_delete` mutate your standing instructions — confirm before writing. This applies to any template-sourced doc, `emm`-maintained or not, when the account owner has asked for the change.
 
-**Guided accounts.** When `instruction_settings()` reports guided settings, `tasks`, `personal` and `style` are built from them: read the settings, request the window with the named change as `reason`, then `instruction_settings_update(changes=[...])` (it closes the window by default). `instruction_save` refuses those three there (`guided_mode`); whole-document saves are for Advanced accounts.
+**Guided accounts.** When `instruction_settings()` reports guided settings, `tasks`, `personal` and `style` are built from them: read the settings, request the window with the named change as `reason`, then `instruction_settings_update(changes=[...])` (it closes the window by default). `instruction_save` refuses those three there (`guided_mode`), and Emm's `agents` / `default_tasks` too: the owner approves their updates in the app — tell them, don't save. Whole-document saves are for Advanced accounts.
 
 ## Improvement lifecycle
 
@@ -381,7 +381,7 @@ Instruction writes need **Instructions-Update Mode** to be open. If it isn't (`s
 
 1. **Find.** `output_search(category="improvement")` (or `output_list(category="improvement")`) for open self-review proposals — accepted findings from a prior Self-Review task that haven't been acted on yet.
 2. **Route.** For each proposal, check `instruction_list()`'s `maintained_by` field for the target doc (not the doc's name): `emm` means Emm ships and iterates the baseline — a generalizable fix should go upstream, not only into this account's copy; `user` means it's purely this user's document.
-3. **Apply.** For an `emm`-maintained doc with `update_available: true`, call `instruction_merge_preview(name=...)` first — a compact diff of what the update changes. If it says `strategy: clean`, apply it in one call with **`instruction_save(name=..., apply_clean_merge: true)`** (omit `content` — Emm saves the merged draft for you; don't re-emit the body). If `strategy: conflict`, load the body, resolve every hunk explicitly (never blind-save the auto-draft — it drops the incoming change), then `instruction_save(name=..., content=<resolved body>, applied_update: true)`. For a `user` doc, or an `emm` doc with no pending update, just `instruction_save` normally — on a guided account, change `tasks` / `personal` / `style` with `instruction_settings_update` instead.
+3. **Apply.** For an `emm`-maintained doc with `update_available: true`, call `instruction_merge_preview(name=...)` first — a compact diff of what the update changes. If it says `strategy: clean`, apply it in one call with **`instruction_save(name=..., apply_clean_merge: true)`** (omit `content` — Emm saves the merged draft for you; don't re-emit the body). If `strategy: conflict`, load the body, resolve every hunk explicitly (never blind-save the auto-draft — it drops the incoming change), then `instruction_save(name=..., content=<resolved body>, applied_update: true)`. For a `user` doc, or an `emm` doc with no pending update, just `instruction_save` normally — on a guided account, change `tasks` / `personal` / `style` with `instruction_settings_update` instead, and leave `agents` / `default_tasks` to the owner.
 4. **Upstream.** A fix that isn't specific to this account belongs in the seed template, not only this account's copy — note it for the maintainer (the run log, or a `## Pending decisions` item) rather than assuming your local edit alone closes the loop.
 5. **Retire.** Once a proposal is implemented, fold its content into the target doc, then `output_delete` the `improvement` item so it stops showing as open. Leaving implemented proposals in place just means they keep getting re-surfaced.
 

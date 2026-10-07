@@ -2,6 +2,19 @@
 
 All notable changes to the **Working with Emm AI** skill (ClawHub slug: `working-with-emm`; previously published under `managing-actingweb-memory`).
 
+## [2.11.1] — 2026-10-07
+
+### Changed
+
+- [Instructions](#instructions), `references/mission-control.md`,
+  `references/tool-surface.md`: on a guided account `instruction_save` and
+  `instruction_delete` also answer `guided_mode` for `agents` and
+  `default_tasks`. Emm maintains those two there and the owner approves
+  their updates in the app; behaviour changes go through
+  `instruction_settings_update`. `status()` lists those in
+  `instructions_owner_approves_updates` with a `tell_owner_about_updates`
+  action, never in `instructions_pending_updates`.
+
 ## [2.11.0] — 2026-10-06
 
 ### Added
