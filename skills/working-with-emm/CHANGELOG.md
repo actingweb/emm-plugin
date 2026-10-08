@@ -2,6 +2,16 @@
 
 All notable changes to the **Working with Emm AI** skill (ClawHub slug: `working-with-emm`; previously published under `managing-actingweb-memory`).
 
+## [2.11.2] — 2026-10-08
+
+### Changed
+
+- `references/mission-control.md`: a `short_description` over 200
+  characters on `output_create`, `output_update` or `output_edit` is no
+  longer an error. The server cuts it at a word and the result says so;
+  the `short_description_too_long` row is gone from the remedy table.
+  Titles over 200 characters are still refused.
+
 ## [2.11.1] — 2026-10-07
 
 ### Changed

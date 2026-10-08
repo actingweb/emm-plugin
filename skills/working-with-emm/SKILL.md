@@ -1,6 +1,6 @@
 ---
 name: working-with-emm
-version: 2.11.1
+version: 2.11.2
 description: Stores and retrieves personal preferences, decisions, and context across conversations using Emm AI via MCP, and (when enabled) runs Emm AI's standing instructions, output wiki, and recurring-task cycle on top. Activates when the user mentions remembering, recalling decisions, saving info for later, personalized recommendations, shared context with others, controlling connected devices, or anything benefiting from long-term memory. Also activates when personal context would improve the response (trip planning, meeting prep, purchases, diet, health, or any request where knowing user history matters), AND when the user asks for an "agent run", "run the cycle", "what's on my dashboard", "drain my tasks", or equivalent phrasing tied to Emm AI's mission-control surface. Also fires when the user wants something written up and kept, asks whether there is anything you should be doing for them, or asks what you know about them, even without naming Emm.
 user-invocable: false
 license: MIT-0
