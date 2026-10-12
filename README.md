@@ -131,7 +131,7 @@ Commands are prefixed with `/emm:` in Claude Code (the namespace comes from the 
 | Command | Description | Arguments |
 |---|---|---|
 | `/emm:run` | Run the recurring agent cycle (`agent_run`) | None |
-| `/emm:task [topic]` | Drain the one-off task queue (`work_on_task`) | Optional topic |
+| `/emm:task [topic]` | Drain the one-off task queue (`work_on_task`); `task_draft` queues one | Optional topic |
 
 ### Connections & help
 

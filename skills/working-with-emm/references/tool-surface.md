@@ -100,7 +100,8 @@ other edit to the body is final.
 
 ## One-off task drain
 
-- `work_on_task()` — get one context-prepared one-off task; `list_only=true` to peek; `mark_done=true, task_id=ID` to close.
+- `work_on_task()` — get one context-prepared one-off task; `list_only=true` to peek (it also lists unready `drafts`; `completed_since_days=N` trims old tasks); `mark_done=true, task_id=ID` to close, with `result_output_id="category:id"` to link the output.
+- `task_draft(mode, …)` — queue a one-off task and refine it: `create`, then `refine` until the reply says `done`, then `mark_ready` when it says `ready`. The owner's Settings switch decides whether `mark_ready` is allowed (`autonomy_off`).
 
 ## Shared Memories
 

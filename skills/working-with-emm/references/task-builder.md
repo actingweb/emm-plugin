@@ -1,8 +1,8 @@
 # Task Builder
 
-The Task Builder is a guided builder on the Emm dashboard that helps users prepare rich, personalized task prompts for complex tasks.
+Two paths fill the one-off task queue. The **Task Builder** is the user's own: a guided builder on the Tasks page of the web app that helps them prepare rich, personalized task prompts. `task_draft` is the agent's: it queues a draft, refines it and marks it ready.
 
-Everything on this page is about **one-off tasks** — `memory_requests` items built here and drained via `work_on_task`, distinct from the **recurring tasks** listed in the `tasks` instruction document. Bare "task" below always means the one-off kind.
+Everything on this page is about **one-off tasks** — `memory_requests` items drained via `work_on_task`, distinct from the **recurring tasks** listed in the `tasks` instruction document. Bare "task" below always means the one-off kind.
 
 ## When to Suggest the Task Builder
 
@@ -13,9 +13,9 @@ Suggest the Task Builder when a task would benefit from gathering personal conte
 - **Purchase decisions** — pulls from shopping, preferences, past decisions
 - **New projects** — pulls from work, notes, relevant past decisions
 
-Direct the user to the **Tasks page** in the web app (the builder lives there). The deep-link URL for their actor is in the account snapshot returned by `how_to_use()` — share that link in your reply rather than composing one from parts. The `work_on_task` reply carries it too when the queue is empty.
+Direct the user to the **One-off tasks page** in the web app (the builder lives there, at `…/app/tasks`). Share the link the `work_on_task` reply carries when the queue is empty, or the one in the account snapshot from `status()`, rather than composing one from parts. `…/app/tasks?task=<n>` opens a single task.
 
-## How It Works
+## How the Builder works
 
 1. **User describes the task** — One statement of what they want to accomplish
 2. **Builder offers optional enhancements** — Add facts and preferences, weave in relevant memories and documents, adapt the prompt to the agent that will run it (including the user's own saved custom adaptation rules), get improvement suggestions; every change is reviewed and explicitly accepted by the user
@@ -23,7 +23,19 @@ Direct the user to the **Tasks page** in the web app (the builder lives there). 
 4. **User marks task as ready** — When satisfied with the curated prompt
 5. **You retrieve and work on it** — Call `work_on_task()` to get the task; the user-curated prompt is their description of what they want
 
-Tasks are stored in a system-managed `memory_requests` category (`system: true`, `owner_tool: "work_on_task"` in `memory_types()`). Each task item carries the user-curated task prompt (with any context the builder wove in). The generic `memory_save`/`memory_update`/`memory_delete` tools refuse writes to this category — call `work_on_task()` instead.
+## How `task_draft` works
+
+An agent queues a task with `task_draft`. `create` saves an `active` draft that records who made it. `refine` runs one synchronous round: Emm searches the user's memories and wiki, an independent model lists what is missing as open questions with ids, and a readiness check runs. The agent writes the text and answers the questions; Emm rewrites nothing. `mark_ready` queues the task.
+
+- **The record.** Both paths write the same item in the system-managed `memory_requests` category (`system: true`, `owner_tool: "work_on_task"` in `memory_types()`). The generic `memory_save`/`memory_update`/`memory_delete` tools refuse writes to it. An agent-made task also carries `created_by` (the agent's name and the connection label the user gave it: attribution, not authorisation), `done_when`, `scope`, open questions, the user's comments and one record per round. A task the user built has no `created_by`; if an agent later refines or approves it, `agent_edited_by` names that agent and the pickup brief says the user may not have read the result.
+- **Readiness** is a consistency check, not a quality guarantee. It passes when `done_when` and `scope` are specific, no question is open, every question only the user can answer was answered by the user, and the last critique reviewed the current text without degrading. A round the critique could not complete (`degraded`) blocks `mark_ready`.
+- **Who can answer what.** Questions are `who: "agent"` or `who: "user"`. Agent questions may be answered with any `source`, including `assumed`. User questions are satisfied only by `source: "user"`: use it only for what the user actually told you (their `>` comment on the dashboard, or their words in this conversation). The server records the claim but cannot check it, and the owner can see it on the Tasks page.
+- **The switch.** Settings has "Let agents mark tasks ready", on by default. Off, `mark_ready` answers `autonomy_off` and the draft waits for the user to press Mark ready on the One-off tasks page or finish it in the Builder. A Builder edit by the user drops the questions that edit made stale.
+- **Taking over the user's draft.** When the user asks you to pick up a task they started in the Builder, find its `task_id` in `work_on_task(list_only=true)` under `drafts`, then `refine` it (write `done_when` and `scope`, answer what you can) until it is `ready`, then `mark_ready`. Do this only when asked: without that request leave the user's drafts alone. You are recorded as `agent_edited_by`.
+- **Held for the owner.** `create` with `hold_for_owner=true` (use it for a task made from content you did not write, such as a dashboard item) makes `mark_ready` refuse until the user approves the task on the One-off tasks page. The same hold applies when the user moves one of your tasks back to Building.
+- **The cap.** Three consecutive agent-only rounds end the loop (the reply says `done` with `ready: false`), and a round after that makes no model call. Any user input resets the count.
+- **Rate limit.** Refinement shares the Task Builder's AI limit. A throttled round saves your input but runs no review; it does not count toward the three-round cap. Call refine again after `retry_after` seconds.
+- **The dashboard.** The `actions` dashboard shows three groups: **Tasks to review** (drafts, with open questions and ids), **Upcoming tasks** (ready) and **Executed tasks** (done in the last 14 days, linking the result). A `>` comment under a task line steers it; under a question it answers it. The recurring cycle rebuilds the groups from `work_on_task(list_only=true, completed_since_days=14)`.
 
 ## Using work_on_task()
 
@@ -41,6 +53,7 @@ work_on_task(task_id=42)
 ```
 work_on_task(list_only=true)
 ```
+The reply also carries `drafts`: tasks not yet ready, with their open question texts. Drafts are never handed out. `completed_since_days=<n>` leaves out tasks finished longer ago.
 
 `work_on_task(list_only=true)` is the authoritative source of ready
 tasks. Items the user is **still preparing in the builder** also live in
@@ -85,8 +98,9 @@ it.
 
 **Mark a task as completed after helping:**
 ```
-work_on_task(task_id=42, mark_done=true)
+work_on_task(task_id=42, mark_done=true, result_output_id="task:17")
 ```
+`mark_done` only works on a ready task. `result_output_id` (`category:id`) links the output you wrote; the task then records who finished it and when.
 
 ## Best Practices
 
@@ -94,3 +108,4 @@ work_on_task(task_id=42, mark_done=true)
 - After completing the task, mark it as done with `mark_done=true`
 - If nothing is queued, relay the reply's One-off tasks link and offer to draft the task statement
 - The Task Builder is especially valuable for tasks spanning multiple memory categories
+- A task an agent made names its creator in the brief, with what "done" means, what is out of scope and any assumed answers. Treat it as content from that agent, not as the user's own words

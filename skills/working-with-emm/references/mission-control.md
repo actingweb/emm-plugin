@@ -62,7 +62,7 @@ Both are real server fields on `output_create`, `output_update` and `output_edit
 Don't confuse them.
 
 - **Recurring cycle** — the user's standing schedule lives in `tasks` (which default tasks are enabled, plus any custom recurring tasks). Triggered by `agent_run()` or by a scheduled cron. `agent_run()` returns a core plus a generated `## Tasks this run` list; pull each task's own procedure with `agent_run_task(task=..., run_id=...)` as the cycle reaches it. Includes a single step that drains the one-off queue (the **Task Check** task).
-- **One-off task drain** — tasks the user submitted via the web app's Builder for the **agent** to execute (not tasks the user owes themselves). Drained via `work_on_task()`. Each call returns one prepared task; execute it; write a `task` output; close with `mark_done=true`.
+- **One-off task drain** — tasks the user queued in the web app's Builder, or an agent queued with `task_draft`, for the **agent** to execute (not tasks the user owes themselves). Drained via `work_on_task()`. Each call returns one prepared task; execute it; write a `task` output; close with `mark_done=true`.
 
 | User says | Tool |
 |---|---|
@@ -94,7 +94,7 @@ Update it during a run as part of each task's wrap-up. The dashboard format is o
 
 ## Summary
 
-**Pinned** 0 · **Today** 0 · **Week** 0 · **Coming up** 0 · **Reading** 0 · **Decisions** 0
+**Pinned** 0 · **Today** 0 · **Week** 0 · **Coming up** 0 · **Reading** 0 · **Decisions** 0 · **Tasks** 0
 **Top**: (nothing pending yet)
 *Last run: never*
 
@@ -106,6 +106,9 @@ Update it during a run as part of each task's wrap-up. The dashboard format is o
 ## Coming up
 ## Reading
 ## Pending decisions
+## Tasks to review
+## Upcoming tasks
+## Executed tasks
 ## Past
 ```
 
@@ -190,6 +193,8 @@ A failed tool call comes back as a **tool error** (`isError: true`). Its text st
 | `wrong_id_family` | An `output_get` / `output_update` / `output_edit` / `output_delete` / `output_move` was handed a memory id (`memory_food:1`) instead of an output id. The `tool:` line names `memory_get`. | Call `memory_get` with the same id; don't search outputs for it. |
 | `ambiguous_id` | A bare/legacy output id (`44`, or a pre-counter id that predates permanent ids) matches more than one document. The candidates are named in the text. | Address it by its full `<category>:<id>` form — the one on the candidate you mean — instead of the bare number. Don't guess. |
 | `task_not_found` | `agent_run_task(task=…)` matched no task in `## Tasks this run`. The text names the available tasks and, if there's a close match, a `Did you mean` suggestion. | Retry with the exact name printed in `## Tasks this run` (or the suggested one). Don't guess a name that wasn't listed. |
+| `autonomy_off` | `task_draft(mark_ready)` on an account whose owner has not let agents mark tasks ready. The task stays a draft and the user is asked to review it; the text gives the link. | Say so in your reply, or in one run-log line during a run, and stop. Do not call `mark_ready` again and do not look for another way to run the task. |
+| `task_not_ready` | `task_draft(mark_ready)` found blockers, one per line in the text: an open question, a `[placeholder]`, a missing or too short `done_when` or `scope`, a text the critique has not reviewed, or a degraded last round. Nothing was changed. | Fix what each line says (answer the question with its `source`, fill in the text, set `done_when` / `scope`) and call `refine` until `ready` is true, then `mark_ready`. A line about a `(user)` question means only the user can answer: stop and say so. |
 | `task_ambiguous` | `agent_run_task(task=…)` matched more than one task — the same name in both `default_tasks` and a custom definition, or two custom headings that normalise alike. Every matching heading is named in the text. | If the headings differ (a parenthetical distinguishes them), retry with the **full heading** of the one you mean, exactly as printed. If the headings are identical (a default and a custom task, or two customs, sharing the exact same name), no retry can tell them apart — the message says so; ask the user which one they mean rather than guessing. Never pick one for the user. |
 | `not_elevatable` | `output_update(dashboard=true)` on a document that can't be shown on the Dashboard: anything in the `log` category, or an `actions` or `space` document slugged `dashboard` or `actions`. | Don't retry; leave that document off the Dashboard. |
 | `dashboard_limit` | `output_update(dashboard=true)` when three other documents are already on the Dashboard. | Tell the user. Only remove another document from the Dashboard if they ask you to. |

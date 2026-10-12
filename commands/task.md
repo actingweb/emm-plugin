@@ -1,8 +1,8 @@
 ---
-description: Drain the Emm AI one-off task queue (work_on_task).
+description: Drain or add to the Emm AI one-off task queue (work_on_task, task_draft).
 ---
 
-Use the `work_on_task` Emm AI MCP tool to retrieve and work on saved one-off tasks from the Builder.
+Use the `work_on_task` Emm AI MCP tool to retrieve and work on saved one-off tasks, queued by the user in the Builder or by an agent with `task_draft`. To queue one yourself, use `task_draft`: `create`, then `refine` until the reply says done, then `mark_ready`.
 
 Workflow:
 

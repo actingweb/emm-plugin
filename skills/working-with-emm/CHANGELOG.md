@@ -2,6 +2,25 @@
 
 All notable changes to the **Working with Emm AI** skill (ClawHub slug: `working-with-emm`; previously published under `managing-actingweb-memory`).
 
+## [2.12.0] — 2026-10-11
+
+### Added
+
+- [One-off tasks](SKILL.md#one-off-tasks-work_on_task): agents can queue a
+  task themselves with `task_draft` (`create`, `refine` until `done`,
+  `mark_ready`). `autonomy_off` means the owner has not let agents mark
+  their own tasks ready; `task_not_ready` names what blocks it. `assumed`
+  answers go in the run log. `work_on_task` lists unready `drafts`, takes
+  `completed_since_days`, and `mark_done` takes `result_output_id`.
+- `references/task-builder.md`: what the Builder and `task_draft` each
+  write, the readiness check, the switch and the dashboard task groups
+  (Tasks to review, Upcoming tasks, Executed tasks).
+
+### Changed
+
+- `references/mission-control.md`: the dashboard skeleton gains the three
+  task groups and a `**Tasks**` count.
+
 ## [2.11.2] — 2026-10-08
 
 ### Changed
