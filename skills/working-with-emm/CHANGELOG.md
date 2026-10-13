@@ -2,6 +2,19 @@
 
 All notable changes to the **Working with Emm AI** skill (ClawHub slug: `working-with-emm`; previously published under `managing-actingweb-memory`).
 
+## [2.12.1] — 2026-10-12
+
+### Changed
+
+- `references/mission-control.md`: the reference card matches the
+  procedures. The run-log slug is `run-YYYY-MM-DD-HHMM` and the news
+  report's is `YYYY-MM-DD` (the newsletter digest is an `email` output);
+  a dashboard item is one line that starts with an urgency marker and
+  links to its source; the dashboard paragraph says items are edited by
+  `output_edit` during the run and the Summary is regenerated once at the
+  end; the task list names Artefact Hygiene. The user is "the user"
+  throughout, never "the owner".
+
 ## [2.12.0] — 2026-10-11
 
 ### Added

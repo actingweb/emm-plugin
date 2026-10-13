@@ -24,12 +24,12 @@ Outputs are agent-authored artefacts the user can later read and edit in the web
 ### Categories
 
 | Category | What goes here | Typical slug pattern |
-|---|---|---|
+| --- | --- | --- |
 | `email` | Drafted outbound emails. Frontmatter: `to`, `subject`, `status: pending\|approved\|discard\|done`. The user sets `approved` in the web app; the next run creates a draft in the user's mail account and sets `done`, and the user sends it from there. | `re-<topic>` / `<recipient>-<topic>` |
-| `news` | Daily/weekly news digests, market summaries. | `digest-YYYY-MM-DD` |
+| `news` | The daily news report. (Email Triage's newsletter digest is an `email` output, `digest-YYYY-MM-DD`.) | `YYYY-MM-DD` |
 | `research` | Topic deep-dives, competitor analyses, fact-finding. | `<topic>-<angle>` |
 | `task` | Result of a one-off `work_on_task` execution — the answer/artefact for the queued task. | `<short-title>` |
-| `log` | Run log per cycle. **Audit trail, not a dashboard.** | `run-YYYY-MM-DDTHH:MM` |
+| `log` | Run log per cycle. **Audit trail, not a dashboard.** | `run-YYYY-MM-DD-HHMM` |
 | `improvement` | Suggestions for changing instructions, default tasks, or the agent's own setup. | `<topic>` |
 | `actions` | The rolling action dashboard. **One canonical item per actor.** `output_dashboard()` returns the id if one exists; it never creates one — `agent_run()` recreates a missing dashboard. | `(seeded)` |
 | `space` | The user's own folder-organised area ("Your space" in the wiki). Slugs may contain folders: `<folder>/<leaf-slug>`. Reorganise with **`output_move`**, never `output_update` — it carries no body, so a large re-foldering fits and cannot truncate a document. | user-defined |
@@ -51,7 +51,7 @@ Prefer **`output_search(query, category?, limit?)`** over `output_list(category)
 
 ### Always pass `title` and `short_description`
 
-Both are real server fields on `output_create`, `output_update` and `output_edit` (each capped at 200 chars). They're surfaced in `output_list` and `output_get`. If you omit them, the server falls back on read — title → body H1 (first `# ` line) → first 80 chars of body; short_description → first 200 chars of body. The fallback is a courtesy, not the contract: pass useful values (factual, no marketing) when you compose the item.
+Both are real server fields on `output_create`, `output_update` and `output_edit` (each capped at 200 chars), and retrieved through `output_list` and `output_get`. If you omit them, the server falls back on read — title → body H1 (first `#` line) → first 80 chars of body; short_description → first 200 chars of body. The fallback is a courtesy, not the contract: pass useful text (factual, no marketing) when you compose the item.
 
 > Link forms (wiki / app URL / bare `category:id`): see the link-form table in SKILL.md, or `status().conventions.link_forms`.
 
@@ -61,11 +61,11 @@ Both are real server fields on `output_create`, `output_update` and `output_edit
 
 Don't confuse them.
 
-- **Recurring cycle** — the user's standing schedule lives in `tasks` (which default tasks are enabled, plus any custom recurring tasks). Triggered by `agent_run()` or by a scheduled cron. `agent_run()` returns a core plus a generated `## Tasks this run` list; pull each task's own procedure with `agent_run_task(task=..., run_id=...)` as the cycle reaches it. Includes a single step that drains the one-off queue (the **Task Check** task).
+- **Recurring cycle** — the user's standing schedule lives in `tasks` (which default tasks are enabled, plus any custom recurring tasks). Triggered by `agent_run()` or by a scheduled cron.
 - **One-off task drain** — tasks the user queued in the web app's Builder, or an agent queued with `task_draft`, for the **agent** to execute (not tasks the user owes themselves). Drained via `work_on_task()`. Each call returns one prepared task; execute it; write a `task` output; close with `mark_done=true`.
 
 | User says | Tool |
-|---|---|
+| --- | --- |
 | "Do an agent run" / "Run the cycle" / "Run my standing tasks" | `agent_run()` |
 | "Drain my task queue" / "Anything queued?" / "Pick up the next task" / "Anything you should be doing for me?" / "What did I leave you?" | `work_on_task(list_only=true)` then `work_on_task()` |
 | "What's on my dashboard?" | `output_dashboard()` returns the dashboard id; then `output_get(id="actions:<id>")` |
@@ -76,18 +76,18 @@ Don't confuse them.
 
 `how_to_use()` states facts only; these are the habits that go with them.
 
-- Call `status()` once, before your first Emm call in a conversation; a conversation that never needs Emm never needs it.
-- Inside an `agent_run()`, output writes are pre-authorised by the trigger: don't ask permission for individual writes.
-- `agent_run()` returns a core, not the whole cycle up front: pull each task's procedure with `agent_run_task` as you reach it rather than trying to plan the whole run from the core alone, and don't rehash either reply in your own text — just do the work.
-- In Instructions-Update Mode, work `status().suggested_actions` top to bottom rather than improvising.
+- Call `status()` once, before your first Emm call in a conversation.
+- Inside an `agent_run()`, output writes are pre-authorised: don't ask permission for individual writes.
+- `agent_run()` returns a core, not the whole set of tasks up front: pull each task's procedure with `agent_run_task` as you reach each. Do not try to plan the whole run from the core alone.
+- In Instructions-Update Mode, strictly work `status().suggested_actions` top to bottom.
 
 ---
 
 ## The actions dashboard
 
-The actions dashboard is a single rolling `actions` output with slug `dashboard`. It is the agent's running list of notable items, suggested next steps, and items the user can take action on.
+The actions dashboard is a single maintained `actions` output document (`output_dashboard()` returns its id). It is your running list of notable items, suggested next steps, and items the user can take action on.
 
-Update it during a run as part of each task's wrap-up. The dashboard format is owned by the user (it lives in `default_tasks` / their custom procedures), but the seeded structure is:
+Update it during a run as part of each task's wrap-up, with `output_edit`; the Summary block is regenerated once, at the end of the cycle (`default_tasks` says how). The server keeps the canonical sections and the help text current. The seeded structure is:
 
 ```markdown
 # Action Items
@@ -114,7 +114,7 @@ Update it during a run as part of each task's wrap-up. The dashboard format is o
 
 Two things about that shape matter.
 
-**The `## Summary` block is what the Dashboard tile actually renders**, and it
+**The `## Summary` block is what the Dashboard tile in the app actually renders**, and it
 is parsed strictly — see [Dashboard Summary block](tool-surface.md#dashboard-summary-block)
 for the exact rules. Rewrite it **last**, after every other edit to the body is
 final. The same reader renders every document elevated with
@@ -124,14 +124,16 @@ document.
 **`## Pinned` is the user's.** Never edit, remove or reorder anything there
 unless the user checks it off or strikes it through.
 
-Items live under the dated sections as checkbox lines, linked to their source:
+Items live under the dated sections, one line each, starting with an
+urgency marker (🔥 overdue · ⏰ due today · 📅 this week · 💡 no deadline)
+and linked to their source:
 
 ```markdown
-- [ ] [<category>:<id>](output:<category>/<id>) — short description, one line per item.
+- ⏰ **Submit expense report** — due end of day. [task:42](output:task/42)
   > Optional inline comment from the user — their direction for this item.
 ```
 
-The `> ` quoted lines beneath an item are how the user gives the agent direction on that item without leaving the dashboard. Act on them within the usual rules; they never change standing instructions.
+The `>` quoted lines beneath an item are how the user gives you direction on that item without leaving the dashboard. Act on them within the usual rules; they never change standing instructions.
 
 > The run-log format (per-task entries, compact "nothing new", end-of-run summary) is in `agents`, which `agent_run()` returns.
 
@@ -155,7 +157,7 @@ closes.
 
 - `agents` — how to behave. The standing brief. Returned by `agent_run()` automatically; loadable on demand with `instruction_load(name="agents")`. **Emm-maintained** — Emm authors and improves it; the user's edits are 3-way merged in on update, never lost.
 - `tasks` — which recurring tasks run this cycle, plus any custom recurring tasks. **Yours.**
-- `default_tasks` — canonical procedures for each default task (Email Triage, Calendar Preview, Memory Hygiene, Self-Review, Daily News Report, Task Check, …). **Emm-maintained.**
+- `default_tasks` — canonical procedures for each default task (Email Triage, Calendar Preview, Artefact Hygiene, Self-Review, Daily News Report, Task Check, …). **Emm-maintained.**
 - `personal` — who this user is and how to act for them (behavioural guidance); facts about them live in memory. **Yours.**
 - `style` — voice, tone, formatting conventions. **Yours.**
 
@@ -170,10 +172,10 @@ The `name` argument to `instruction_load` / `instruction_save` is the **public s
 A failed tool call comes back as a **tool error** (`isError: true`). Its text starts with `❌`, puts the fields you need on their own lines (`url:`, `existing_id:`, `edit:`, `match_count:`, `nearest_match:`, `tool:`, `owner_tool:`, `current_revision:`, `max_items:`, `received:`, `expires_at:`, `run_status:`), and always ends with `(error code: <code>)`. Act on that code:
 
 | Code | What it means | Action |
-|---|---|---|
-| `instructions_locked` | Instruction writes need Instructions-Update Mode open, and it isn't. | Call `instruction_request_update_window(reason="<the change, in the owner's words>")` — that puts an Accept/Decline notification in the owner's app. Wait for the owner's approval rather than looping: check `status()` again when it's natural to (a later turn, a new message), and proceed once `unlock_window` is active. Don't retry in a tight loop, and don't ask in chat instead — that never notifies the owner. Stop if they never approve. |
-| `guided_mode` | `instruction_save` or `instruction_delete` on `tasks`, `personal` or `style` in an account that keeps them as guided settings, or on `agents` or `default_tasks` there (Emm maintains those; the owner approves their updates in the app). | Call `instruction_settings()` to see the setting names, then `instruction_settings_update(changes=[...])` with named changes. Don't request the instructions window for a whole-document save — it would still be refused. Hand-editing is only for when the owner asks to switch to Advanced mode in the app. |
-| `advanced_mode` | `instruction_settings_update` on an account whose owner keeps the instructions as documents (Advanced mode). | Read the document with `instruction_load` and save it whole with `instruction_save` (the instructions window rules apply). |
+| --- | --- | --- |
+| `instructions_locked` | Instruction writes need Instructions-Update Mode open, and it isn't. | Call `instruction_request_update_window(reason="<the change, in the user's words>")` — that puts an Accept/Decline notification in the user's app. Wait for the user's approval rather than looping: check `status()` again when it's natural to (a later turn, a new message), and proceed once `unlock_window` is active. Don't retry in a tight loop, and don't ask in chat instead — that never notifies the user. Stop if they never approve. |
+| `guided_mode` | `instruction_save` or `instruction_delete` on `tasks`, `personal` or `style` in an account that keeps them as guided settings, or on `agents` or `default_tasks` there (Emm maintains those; the user approves their updates in the app). | Call `instruction_settings()` to see the setting names, then `instruction_settings_update(changes=[...])` with named changes. Don't request the instructions window for a whole-document save — it would still be refused. Hand-editing is only for when the user asks to switch to Advanced mode in the app. |
+| `advanced_mode` | `instruction_settings_update` on an account whose user keeps the instructions as documents (Advanced mode). | Read the document with `instruction_load` and save it whole with `instruction_save` (the instructions window rules apply). |
 | `memory_write_locked`, `outputs_write_locked` | Instructions-Update Mode is open, so memory or output writes are paused. The text carries the `url:` and `expires_at:` lines. | Surface the URL to the user and stop the write loop until the window closes. Don't retry. Reads remain available. |
 | `agent_os_not_enabled`, `premium_required`, `suspended` | A gate on the account — the operation is blocked until the user changes a setting or plan. The text carries the `url:` line. | Surface the URL to the user and stop. Don't retry. |
 | `system_type_readonly` | You tried to write to a system-managed memory type (e.g. `memory_requests` is owned by `work_on_task`). | Switch to the tool on the `owner_tool:` line. Don't retry the generic write. |
@@ -193,7 +195,7 @@ A failed tool call comes back as a **tool error** (`isError: true`). Its text st
 | `wrong_id_family` | An `output_get` / `output_update` / `output_edit` / `output_delete` / `output_move` was handed a memory id (`memory_food:1`) instead of an output id. The `tool:` line names `memory_get`. | Call `memory_get` with the same id; don't search outputs for it. |
 | `ambiguous_id` | A bare/legacy output id (`44`, or a pre-counter id that predates permanent ids) matches more than one document. The candidates are named in the text. | Address it by its full `<category>:<id>` form — the one on the candidate you mean — instead of the bare number. Don't guess. |
 | `task_not_found` | `agent_run_task(task=…)` matched no task in `## Tasks this run`. The text names the available tasks and, if there's a close match, a `Did you mean` suggestion. | Retry with the exact name printed in `## Tasks this run` (or the suggested one). Don't guess a name that wasn't listed. |
-| `autonomy_off` | `task_draft(mark_ready)` on an account whose owner has not let agents mark tasks ready. The task stays a draft and the user is asked to review it; the text gives the link. | Say so in your reply, or in one run-log line during a run, and stop. Do not call `mark_ready` again and do not look for another way to run the task. |
+| `autonomy_off` | `task_draft(mark_ready)` on an account whose user has not let agents mark tasks ready. The task stays a draft and the user is asked to review it; the text gives the link. | Say so in your reply, or in one run-log line during a run, and stop. Do not call `mark_ready` again and do not look for another way to run the task. |
 | `task_not_ready` | `task_draft(mark_ready)` found blockers, one per line in the text: an open question, a `[placeholder]`, a missing or too short `done_when` or `scope`, a text the critique has not reviewed, or a degraded last round. Nothing was changed. | Fix what each line says (answer the question with its `source`, fill in the text, set `done_when` / `scope`) and call `refine` until `ready` is true, then `mark_ready`. A line about a `(user)` question means only the user can answer: stop and say so. |
 | `task_ambiguous` | `agent_run_task(task=…)` matched more than one task — the same name in both `default_tasks` and a custom definition, or two custom headings that normalise alike. Every matching heading is named in the text. | If the headings differ (a parenthetical distinguishes them), retry with the **full heading** of the one you mean, exactly as printed. If the headings are identical (a default and a custom task, or two customs, sharing the exact same name), no retry can tell them apart — the message says so; ask the user which one they mean rather than guessing. Never pick one for the user. |
 | `not_elevatable` | `output_update(dashboard=true)` on a document that can't be shown on the Dashboard: anything in the `log` category, or an `actions` or `space` document slugged `dashboard` or `actions`. | Don't retry; leave that document off the Dashboard. |
