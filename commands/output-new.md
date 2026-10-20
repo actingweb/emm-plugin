@@ -11,3 +11,5 @@ Guide me through the `output_create` MCP tool:
 3. Write a one-line **`short_description`** that will surface in list views.
 4. Confirm the **body** (valid Markdown; H1, then H2/H3 sub-sections; YAML frontmatter at top for metadata when relevant).
 5. Run `output_create` and report the resulting `category:id` plus a Wiki link.
+
+If I want a styled HTML report saved as designed (read-only, beta accounts), use `output_publish_html` instead: one self-contained HTML document with an inline `<style>`, no scripts or remote resources. Text I will keep editing stays Markdown.

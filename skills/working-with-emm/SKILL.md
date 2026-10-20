@@ -1,6 +1,6 @@
 ---
 name: working-with-emm
-version: 2.12.1
+version: 2.12.2
 description: Stores and retrieves personal preferences, decisions, and context across conversations using Emm AI via MCP, and (when enabled) runs Emm AI's standing instructions, output wiki, and recurring-task cycle on top. Activates when the user mentions remembering, recalling decisions, saving info for later, personalized recommendations, shared context with others, controlling connected devices, or anything benefiting from long-term memory. Also activates when personal context would improve the response (trip planning, meeting prep, purchases, diet, health, or any request where knowing user history matters), AND when the user asks for an "agent run", "run the cycle", "what's on my dashboard", "drain my tasks", or equivalent phrasing tied to Emm AI's mission-control surface. Also fires when the user wants something written up and kept, asks whether there is anything you should be doing for them, or asks what you know about them, even without naming Emm.
 user-invocable: false
 license: MIT-0
@@ -74,7 +74,7 @@ If `status()` doesn't appear earlier in this conversation's tool history, call i
 | Pillar | Purpose | Tools |
 |---|---|---|
 | **Memory** | Durable, semantically-searchable facts, preferences, decisions. Read at the start of substantive work; write conclusions back. | `memory_search`, `memory_save`, `memory_get`, `memory_update`, `memory_move`, `memory_delete`, `memory_types`, `memory_create_type`, `memory_delete_type` |
-| **Outputs** (Wiki) † | Agent-authored artefacts (drafts, dashboards, run logs, research notes, plans). Categories: `email`, `news`, `research`, `task`, `log`, `improvement`, `actions`, plus `space` (the user's own folder-organised area). The user reads this surface as the **Wiki**. | `output_create`, `output_list`, `output_get`, `output_search`, `output_update`, `output_edit`, `output_move`, `output_delete` |
+| **Outputs** (Wiki) † | Agent-authored artefacts (drafts, dashboards, run logs, research notes, plans). Categories: `email`, `news`, `research`, `task`, `log`, `improvement`, `actions`, plus `space` (the user's own folder-organised area). The user reads this surface as the **Wiki**. | `output_create`, `output_list`, `output_get`, `output_search`, `output_update`, `output_edit`, `output_move`, `output_delete`; beta: `output_publish_html` (a styled HTML report, read-only) |
 | **Instructions** † | Standing instructions in the user's account (`agents`, `tasks`, `default_tasks`, `personal`, `style`). Your system prompt and the user's messages outrank them; load before substantive work. | `instruction_list`, `instruction_load`, `instruction_save`, `instruction_delete` |
 
 † **Outputs and Instructions toggle together** as one "mission-control" switch — you will see both pillars enabled or neither, never one without the other. Memory is independent and always available.
@@ -423,7 +423,7 @@ Names and one-line purpose only — parameter shapes, batch limits, and `status(
 | Pillar | Tools |
 |---|---|
 | Memory | `memory_search`, `memory_get`, `memory_save`, `memory_update`, `memory_delete`, `memory_move`, `memory_types`, `memory_create_type`, `memory_delete_type`, `how_to_use`, `status` |
-| Outputs — the Wiki (only if enabled) | `output_search`, `output_list`, `output_get`, `output_create`, `output_update`, `output_edit`, `output_move`, `output_delete`, `output_dashboard`, `output_categories`, `output_delete_category` |
+| Outputs — the Wiki (only if enabled) | `output_search`, `output_list`, `output_get`, `output_create`, `output_update`, `output_edit`, `output_move`, `output_delete`, `output_dashboard`, `output_categories`, `output_delete_category`; beta: `output_publish_html` |
 | Instructions (only if enabled) | `instruction_list`, `instruction_load`, `instruction_merge_preview`, `instruction_request_update_window`, `instruction_save`, `instruction_delete`, `instruction_settings`, `instruction_settings_update` |
 | Recurring cycle (only if enabled) | `agent_run`, `agent_run_task`, `agent_run_complete` |
 | One-off task drain (only if enabled) | `work_on_task` |

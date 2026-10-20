@@ -2,6 +2,23 @@
 
 All notable changes to the **Working with Emm AI** skill (ClawHub slug: `working-with-emm`; previously published under `managing-actingweb-memory`).
 
+## [2.12.2] — 2026-10-19
+
+### Added
+
+- Beta: `output_publish_html` saves a styled HTML report read-only, and
+  `output_update` / `output_edit` change it. `references/mission-control.md`
+  has a section on when to pick it, the allowed subset, image tokens and
+  conversion; `references/tool-surface.md` lists the tool.
+- `references/mission-control.md`, "Changing the kind": `output_publish_html`
+  with `replace` and `if_match` turns an editable document into a designed
+  page in place; `output_update` with `content_format: "markdown"` and
+  `if_match` turns it back. `references/tool-surface.md` lists `replace`.
+- `references/mission-control.md`: the error table lists
+  `html_document_not_accepted` (a full or styled HTML document sent to a
+  Markdown writer), `html_rejected` (an HTML document `output_publish_html`
+  refuses) and `output_too_large` (the stored size limit).
+
 ## [2.12.1] — 2026-10-12
 
 ### Changed
