@@ -2,6 +2,22 @@
 
 All notable changes to the **Working with Emm AI** skill (ClawHub slug: `working-with-emm`; previously published under `managing-actingweb-memory`).
 
+## [2.12.3] — 2026-10-22
+
+### Changed
+
+- `references/mission-control.md`, "Read-only HTML documents": scripts run.
+  A new "Scripts run, in a sandbox" bullet says what an HTML document may
+  hold (inline `<script>`, `<script src="https://…">` from any CDN, the
+  common inline handlers, form controls without submission or password
+  fields, `<canvas>`, `data-*`; a form does not submit), what the sandbox
+  withholds (requests of its own, storage and the Emm session; links only
+  from the user's click; the user can turn scripts off) and that its script
+  and style URLs are still requested, so they never carry private data, where scripts are placed and run, why a CDN `src`
+  beats an inlined library, and how to make an existing static page
+  interactive (`output_update` with the full HTML). The error table's
+  `html_rejected` row names `script_src` and `script_text` and the fixes.
+
 ## [2.12.2] — 2026-10-19
 
 ### Added

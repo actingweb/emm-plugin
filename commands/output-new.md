@@ -12,4 +12,4 @@ Guide me through the `output_create` MCP tool:
 4. Confirm the **body** (valid Markdown; H1, then H2/H3 sub-sections; YAML frontmatter at top for metadata when relevant).
 5. Run `output_create` and report the resulting `category:id` plus a Wiki link.
 
-If I want a styled HTML report saved as designed (read-only, beta accounts), use `output_publish_html` instead: one self-contained HTML document with an inline `<style>`, no scripts or remote resources. Text I will keep editing stays Markdown.
+If I want a styled HTML report saved as designed (read-only, beta accounts), use `output_publish_html` instead: one self-contained HTML document with an inline `<style>`; scripts (inline or from an `https:` CDN) and inline handlers run in a sandboxed frame that cannot make requests beyond loading those scripts and styles (never put private data in their URLs), so keep the numbers readable without them; no remote images or stylesheets. Text I will keep editing stays Markdown.
