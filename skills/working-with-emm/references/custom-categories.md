@@ -22,7 +22,7 @@ memory_create_type(
 
 Pass the **short form** (`recipes`) — the `memory_` prefix is reserved for IDs and storage. The storage form (`memory_recipes`) is also accepted, for older callers, but prefer the short form.
 
-**Sharing.** By default a new category is **shared with all of the user's connected agents** (the user can flip this default in Settings → Memory & Sharing). For sensitive data other agents shouldn't see, pass `sharing="creator_only"` to create a category only this connection can access. The response's `sharing` field tells you which mode applied.
+**Sharing.** By default a new category is **shared with all of the user's connected agents** (the user can flip this default in Settings → Memory access). For sensitive data other agents shouldn't see, pass `sharing="creator_only"` to create a category only this connection can access. The response's `sharing` field tells you which mode applied.
 
 **Three name-shaped fields on the `memory_types()` response, one rule.** Each category row carries `type_name` (the storage form, e.g. `memory_recipes`), `name` (the display label, e.g. `My Recipes`), and `id_prefix` (the short form, e.g. `recipes`). **Always use `id_prefix` when you call a tool** — `memory_save`, `memory_search` with `in <type>: …`, `memory_create_type`, `memory_delete_type`. `type_name` is for inspecting storage; `name` is for surfacing the category to the user in prose. Don't pass `type_name` to anything that expects a category argument.
 
@@ -43,7 +43,7 @@ This auto-creates the `projects` category (stored as `memory_projects`) if it do
 ## Privacy Rules
 
 - New custom categories (explicitly created or auto-created via save) are **shared with all of the user's connected agents by default**
-- The user controls this default in **Settings → Memory & Sharing** (`all` vs `creator_only`); when set to creator-only, new categories are private to the connection that created them
+- The user controls this default in **Settings → Memory access** (`all` vs `creator_only`); when set to creator-only, new categories are private to the connection that created them
 - `memory_create_type(sharing="creator_only")` creates a private category regardless of the default — use it for sensitive data
 - Default categories are available to all the user's AI agents automatically
 - Access to any existing category can be granted or revoked per agent from the category's detail view in the web app

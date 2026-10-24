@@ -62,6 +62,10 @@ For a beta account, a styled HTML report the user wants kept as designed is save
 - **The user can convert it.** From the document, the user can turn it into an editable Markdown document after a preview of what is lost. After that it is an ordinary document and `output_edit` `append` works again.
 - It cannot go in `actions` or on the Dashboard.
 
+### Sharing a document with a person (beta)
+
+A wiki document can be shared, live and read-only, with one person: the user presses **Share** on it in the Emm app and names their address, and that person signs in with it to read the current version. There is no tool for it: when the user asks you to share a document, point them to Share in the app. Deleting a document, or moving it to `log`, ends its shares; renaming or moving it elsewhere does not, except a rename that makes it the dashboard summary document (slug `dashboard` or `actions` in `actions` or `space`).
+
 ### Always pass `title` and `short_description`
 
 Both are real server fields on `output_create`, `output_update` and `output_edit` (each capped at 200 chars), and retrieved through `output_list` and `output_get`. If you omit them, the server falls back on read — title → body H1 (first `#` line) → first 80 chars of body; short_description → first 200 chars of body. The fallback is a courtesy, not the contract: pass useful text (factual, no marketing) when you compose the item.

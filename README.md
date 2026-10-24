@@ -151,7 +151,7 @@ Claude can also read your standing instructions and the output wiki through the 
 Your data is stored by Emm AI (`https://ai.actingweb.io`) in the EU, on AWS.
 
 - **Other people** see it only if you connect with them in the app and grant them access to specific memory categories. Nothing is public.
-- **Your connected AI agents** see your memories. A custom memory category is shared with all of them by default; you can make one "Creator only" in Settings → Memory & Sharing.
+- **Your connected AI agents** see your memories. A custom memory category is shared with all of them by default; you can make one "Creator only" in Settings → Memory access.
 - **AI processing** in Emm runs on AWS Bedrock, which does not train its models on your data.
 
 [Privacy Policy](https://ai.actingweb.io/privacy) · [Terms of Service](https://ai.actingweb.io/terms)

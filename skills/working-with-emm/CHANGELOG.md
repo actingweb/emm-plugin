@@ -2,6 +2,17 @@
 
 All notable changes to the **Working with Emm AI** skill (ClawHub slug: `working-with-emm`; previously published under `managing-actingweb-memory`).
 
+## [2.12.4] — 2026-10-23
+
+### Changed
+
+- `references/mission-control.md`: a new "Sharing a document with a person
+  (beta)" section. The user shares a wiki document from the Emm app, and
+  there is no tool for it, so point them there. Deleting a document, moving
+  it to `log`, or renaming it into the dashboard summary ends its shares.
+- `references/custom-categories.md`: the setting that decides which agents
+  get a new memory type is named Settings → Memory access.
+
 ## [2.12.3] — 2026-10-22
 
 ### Changed
