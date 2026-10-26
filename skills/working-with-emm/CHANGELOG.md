@@ -2,6 +2,22 @@
 
 All notable changes to the **Working with Emm AI** skill (ClawHub slug: `working-with-emm`; previously published under `managing-actingweb-memory`).
 
+## [2.12.5] — 2026-10-25
+
+### Changed
+
+- `references/mission-control.md`, `references/tool-surface.md`: folders in
+  `space` are records of their own, matched ignoring case. `output_categories`
+  lists them with document counts, so file into an existing folder and name a
+  new path only when the user asks for a new folder; the user renames and
+  deletes folders in the app. The error table gains `folder_limit` (a new
+  folder would pass 8 levels or 500 folders) and `folders_unavailable`
+  (retry), and `slug_exists` notes that folder names match ignoring case.
+- The `output_create`, `output_update`, `output_move` and
+  `output_publish_html` folder parameters say the same, and the plugin's
+  `output-move` and `output-new` commands tell the agent to look at the
+  folders first.
+
 ## [2.12.4] — 2026-10-23
 
 ### Changed
