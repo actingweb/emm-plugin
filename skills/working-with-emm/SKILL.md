@@ -1,6 +1,6 @@
 ---
 name: working-with-emm
-version: 2.12.5
+version: 2.13.0
 description: Stores and retrieves personal preferences, decisions, and context across conversations using Emm AI via MCP, and (when enabled) runs Emm AI's standing instructions, output wiki, and recurring-task cycle on top. Activates when the user mentions remembering, recalling decisions, saving info for later, personalized recommendations, shared context with others, controlling connected devices, or anything benefiting from long-term memory. Also activates when personal context would improve the response (trip planning, meeting prep, purchases, diet, health, or any request where knowing user history matters), AND when the user asks for an "agent run", "run the cycle", "what's on my dashboard", "drain my tasks", or equivalent phrasing tied to Emm AI's mission-control surface. Also fires when the user wants something written up and kept, asks whether there is anything you should be doing for them, or asks what you know about them, even without naming Emm.
 user-invocable: false
 license: MIT-0
@@ -74,7 +74,7 @@ If `status()` doesn't appear earlier in this conversation's tool history, call i
 | Pillar | Purpose | Tools |
 |---|---|---|
 | **Memory** | Durable, semantically-searchable facts, preferences, decisions. Read at the start of substantive work; write conclusions back. | `memory_search`, `memory_save`, `memory_get`, `memory_update`, `memory_move`, `memory_delete`, `memory_types`, `memory_create_type`, `memory_delete_type` |
-| **Outputs** (Wiki) † | Agent-authored artefacts (drafts, dashboards, run logs, research notes, plans). Categories: `email`, `news`, `research`, `task`, `log`, `improvement`, `actions`, plus `space` (the user's own folder-organised area). The user reads this surface as the **Wiki**. | `output_create`, `output_list`, `output_get`, `output_search`, `output_update`, `output_edit`, `output_move`, `output_delete`; beta: `output_publish_html` (a styled HTML report, read-only) |
+| **Outputs** (Wiki) † | Agent-authored artefacts (drafts, dashboards, run logs, research notes, plans). Three areas: Agent created, Your space (the user's folder-organised area) and Agent logs (`log`, `improvement`), with the user's own categories across them; `actions` is the Dashboard list. The user reads this surface as the **Wiki**. | `output_create`, `output_list`, `output_get`, `output_search`, `output_update`, `output_edit`, `output_move`, `output_delete`; beta: `output_publish_html` (a styled HTML report, read-only) |
 | **Instructions** † | Standing instructions in the user's account (`agents`, `tasks`, `default_tasks`, `personal`, `style`). Your system prompt and the user's messages outrank them; load before substantive work. | `instruction_list`, `instruction_load`, `instruction_save`, `instruction_delete` |
 
 † **Outputs and Instructions toggle together** as one "mission-control" switch — you will see both pillars enabled or neither, never one without the other. Memory is independent and always available.
@@ -334,9 +334,9 @@ Outputs are how the agent persists artefacts the user can later read and edit. T
 
 **Document or chat answer?** When the user wants something kept, edited later or returned to (a plan, a draft, a write-up), make or update an output and hand back the link from the create result; a one-shot answer stays in chat.
 
-**When to write:** every substantive task should produce at least one output. Email drafts → `email` (with `status: pending` frontmatter); research → `research`; ad-hoc analysis → propose a fresh category name; per-cycle log → `log`; the rolling action list → `actions` (call `output_dashboard()` for the dashboard id, then `output_edit` or `output_update`).
+**When to write:** every substantive task should produce at least one output. Email drafts → `email` (with `status: pending` frontmatter); research → `research`; ad-hoc analysis → the closest of the user's categories; per-cycle log → `log`; the rolling action list → `actions` (call `output_dashboard()` for the dashboard id, then `output_edit` or `output_update`).
 
-**Before minting a new category**, call `output_categories()` to see what already exists. Reuse an existing custom category instead of inventing a near-duplicate (`meetings` vs `meeting-notes` etc.).
+**Where documents go.** The wiki has three areas: **Agent created** (what you write on your own; the default), **Your space** (the user's working documents, in folders; pass `area="space"` and a `folder`) and **Agent logs** (`log` run logs and `improvement` reflections). **Categories** are the user's own list of topics. Call `output_categories()`, then file under one of the listed categories. A name that is not listed is kept without a category; only the user adds categories, in the app, so tell them when a document needs one. `output_move(id, category="…")` sets the category on a document the user already has.
 
 **Always pass `title` and `short_description`** when you create, update or edit an output (on an edit, if the subject changes) — both are real server fields (≤ 200 chars each), surfaced in `output_list` and `output_get`. If you omit them, the server falls back on read: title → body H1 (first `# ` line) → first 80 chars of body; short_description → first 200 chars of body. Treat the fallback as a courtesy, not the contract.
 
@@ -445,7 +445,7 @@ For deeper guidance on outputs, dashboards, run logs, link forms, and error enve
 
 ## Custom Categories
 
-The 9 default memory categories are: `health`, `travel`, `work`, `food`, `shopping`, `entertainment`, `news`, `notes`, `personal`. Beyond these, you and the user can create custom ones via `memory_create_type()` (or auto-create by `memory_save`-ing to a new type). Outputs follow the same shape — mint new categories on first `output_create` when a deliverable doesn't match the defaults; use `space` for user-organised folder content.
+The 9 default memory categories are: `health`, `travel`, `work`, `food`, `shopping`, `entertainment`, `news`, `notes`, `personal`. Beyond these, you and the user can create custom ones via `memory_create_type()` (or auto-create by `memory_save`-ing to a new type). Outputs use the user's own category list instead: file under a listed category, and use `area="space"` for user-organised folder content.
 
 Two rules that matter at call time: tool parameters take the **short form** (`memory_type="recipes"`, not `memory_recipes`); custom memory categories are **shared with all of the user's connections by default** (`owned_by_me` in `memory_types()` says who made one; `creator_only` sharing is opt-in). System-managed types (`writable: false`) must be written through their named `owner_tool`, never the generic `memory_save`.
 

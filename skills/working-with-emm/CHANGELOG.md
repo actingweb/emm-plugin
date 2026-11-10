@@ -2,6 +2,34 @@
 
 All notable changes to the **Working with Emm AI** skill (ClawHub slug: `working-with-emm`; previously published under `managing-actingweb-memory`).
 
+## [2.13.0] — 2026-11-07
+
+### Changed
+
+- `SKILL.md`, `references/mission-control.md`, `references/tool-surface.md`:
+  the wiki has three areas (Agent created, Your space, Agent logs) and the
+  user's own list of categories across them. Call `output_categories()` and
+  file under a listed category; a name that is not listed is kept without a
+  category, and only the user adds categories, in the app. `output_create`
+  takes `area` and `folder`; `output_move` takes `area` and `category`
+  (`output_move(id, category="…")` sets the category on a Your space
+  document); `output_list` and `output_search` take `area`. `agent_run` names
+  the user's category list in its text (or says there are none), and
+  `status` carries it with `wiki_categories_set_by_user`: until the user has
+  set the list it is the one the Wiki will open with, and the reply says so.
+  When the list can't be read, both say so (`status` also sets
+  `wiki_categories_unavailable`), and
+  `output_categories` says so and sets `category_list_unavailable`; `output_create`
+  and `output_move` with a category then refuse with `category_list_unavailable`
+  and change nothing, and `output_categories`, `output_search`,
+  `output_delete_category`, `output_publish_html`, and `output_create` /
+  `output_move` into a list the account may not have yet refuse the same way
+  when the Wiki's lists cannot be read. The error table gains
+  `category_not_in_list`, `category_in_user_list` and
+  `category_list_unavailable` (retry).
+- The plugin's `output-new`, `output-move` and `output-search` commands say
+  the same.
+
 ## [2.12.5] — 2026-10-25
 
 ### Changed
