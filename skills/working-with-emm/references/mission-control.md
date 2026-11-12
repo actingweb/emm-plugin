@@ -64,7 +64,7 @@ For a beta account, a styled HTML report the user wants kept as designed is save
 
 ### Sharing a document with a person (beta)
 
-A wiki document can be shared, live and read-only, with one person: the user presses **Share** on it in the Emm app and names their address, and that person signs in with it to read the current version. There is no tool for it: when the user asks you to share a document, point them to Share in the app. Deleting a document, or moving it to `log`, ends its shares; renaming or moving it elsewhere does not, except a rename that makes it the dashboard summary document (slug `dashboard` or `actions` in `actions` or `space`).
+A wiki document can be shared, live and read-only, with one person: the user presses **Share** on it in the Emm app and names their address, or picks someone they already share with, and that person signs in with it to read the current version. Picking someone they already share with lists the document in that person's Shared with me and emails them. The person can decline a document; the user then sees it as declined and can share it again. There is no tool for it: when the user asks you to share a document, point them to Share in the app. Deleting a document, or moving it to `log`, ends its shares; renaming or moving it elsewhere does not, except a rename that makes it the dashboard summary document (slug `dashboard` or `actions` in `actions` or `space`).
 
 ### Always pass `title` and `short_description`
 

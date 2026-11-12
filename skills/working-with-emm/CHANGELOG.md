@@ -2,6 +2,16 @@
 
 All notable changes to the **Working with Emm AI** skill (ClawHub slug: `working-with-emm`; previously published under `managing-actingweb-memory`).
 
+## [2.13.1] — 2026-11-11
+
+### Changed
+
+- `references/mission-control.md`: sharing a document names picking someone
+  the user already shares with (Emm lists it in their Shared with me and
+  emails them), and that the person can decline a document, which the user
+  can then share again. Still no tool for sharing: point the user to Share in
+  the app.
+
 ## [2.13.0] — 2026-11-07
 
 ### Changed
